@@ -1,6 +1,15 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, Get, HttpCode, HttpStatus, Res, UseGuards, Req } from '@nestjs/common';
+import * as Express from 'express';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+
+interface RequestWithUser extends Express.Request {
+  user: {
+    userId: string;
+    email: string;
+  };
+}
 
 @Controller('auth')
 export class AuthController {
@@ -8,7 +17,35 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginUserDto) {
-    return await this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginUserDto,
+    @Res({ passthrough: true }) response: Express.Response,
+  ) {
+    const result = await this.authService.login(loginDto);
+    
+  
+    response.cookie('authentication', result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
+    });
+
+    return {
+      user: result.user,
+    };
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Res({ passthrough: true }) response: Express.Response) {
+    response.clearCookie('authentication');
+    return { message: 'Logged out successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getProfile(@Req() req: RequestWithUser) {
+    return req.user;
   }
 }
