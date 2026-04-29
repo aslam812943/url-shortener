@@ -18,14 +18,21 @@ export class UserService {
        
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        const newUser = await this.userRepository.create({
-            name,
-            email,
-            password: hashedPassword,
-        });
-        return {
-            message: 'User registered successfully',
-            userId: newUser.id,
-        };
+        try {
+            const newUser = await this.userRepository.create({
+                name,
+                email,
+                password: hashedPassword,
+            });
+            return {
+                message: 'User registered successfully',
+                userId: newUser.id,
+            };
+        } catch (error: any) {
+            if (error.code === 11000) {
+                throw new ConflictException('User already exists');
+            }
+            throw error;
+        }
     }
 }
