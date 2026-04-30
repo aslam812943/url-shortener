@@ -88,7 +88,8 @@ const DashboardPage: React.FC = () => {
   };
 
   const copyToClipboard = (code: string, id: string) => {
-    const shortUrl = `${window.location.protocol}//${window.location.hostname}:4000/${code}`;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
+    const shortUrl = `${backendUrl}/${code}`;
     navigator.clipboard.writeText(shortUrl);
     setCopiedId(id);
     toast.success('Copied to clipboard!');
@@ -151,46 +152,52 @@ const DashboardPage: React.FC = () => {
               </div>
             ) : (
               <>
-                {links.map((link, index) => (
-                  <div 
-                    key={link.id} 
-                    ref={index === links.length - 1 ? lastElementRef : null}
-                    className="p-6 hover:bg-slate-700/20 transition-colors group"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <a 
-                            href={`${window.location.protocol}//${window.location.hostname}:4000/${link.shortCode}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 font-bold text-lg hover:text-blue-300 transition-colors break-all"
-                          >
-                            {window.location.hostname}:4000/{link.shortCode}
-                          </a>
-                          <ExternalLink size={14} className="text-slate-500" />
+                {links.map((link, index) => {
+                  const backendUrl = import.meta.env.VITE_BACKEND_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
+                  const fullShortUrl = `${backendUrl}/${link.shortCode}`;
+                  const displayUrl = fullShortUrl.replace(/^https?:\/\//, '');
+
+                  return (
+                    <div 
+                      key={link.id} 
+                      ref={index === links.length - 1 ? lastElementRef : null}
+                      className="p-6 hover:bg-slate-700/20 transition-colors group"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <a 
+                              href={fullShortUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 font-bold text-lg hover:text-blue-300 transition-colors break-all"
+                            >
+                              {displayUrl}
+                            </a>
+                            <ExternalLink size={14} className="text-slate-500" />
+                          </div>
+                          <p className="text-slate-500 text-sm truncate max-w-md">
+                            {link.originalUrl}
+                          </p>
                         </div>
-                        <p className="text-slate-500 text-sm truncate max-w-md">
-                          {link.originalUrl}
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => copyToClipboard(link.shortCode, link.id)}
-                          className={`p-2.5 rounded-xl transition-all duration-200 ${
-                            copiedId === link.id 
-                              ? 'bg-green-500/20 text-green-400' 
-                              : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600'
-                          }`}
-                          title="Copy to clipboard"
-                        >
-                          {copiedId === link.id ? <Check size={18} /> : <Copy size={18} />}
-                        </button>
+                        
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => copyToClipboard(link.shortCode, link.id)}
+                            className={`p-2.5 rounded-xl transition-all duration-200 ${
+                              copiedId === link.id 
+                                ? 'bg-green-500/20 text-green-400' 
+                                : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600'
+                            }`}
+                            title="Copy to clipboard"
+                          >
+                            {copiedId === link.id ? <Check size={18} /> : <Copy size={18} />}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 
                 {isLoadingMore && (
                   <div className="p-6 text-center text-slate-400 flex justify-center items-center">
