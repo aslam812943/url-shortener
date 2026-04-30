@@ -1,6 +1,14 @@
 export const API_ROUTES = {
-  LOGIN: '/auth/login',
-  REGISTER: '/user/register',
-  LOGOUT: '/auth/logout',
-  ME: '/auth/me',
+  URL: {
+    SHORTEN: '/url/shorten',
+    MY_LINKS: '/url/my-links',
+  },
+  AUTH: {
+    LOGIN: '/auth/login',
+    LOGOUT: '/auth/logout',
+    ME: '/auth/me',
+  },
+  USER: {
+    REGISTER: '/user/register',
+  }
 };
