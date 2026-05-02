@@ -26,7 +26,7 @@ export class UrlRepository implements IUrlRepository {
   }
 
   async findByOriginalUrl(originalUrl: string, userId?: string): Promise<IUrl | null> {
-    const query: any = { originalUrl };
+    const query: Record<string, unknown> = { originalUrl };
     if (userId) query.userId = userId;
     
     const url = await this.urlModel.findOne(query).exec();

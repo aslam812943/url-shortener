@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { isAxiosError } from 'axios';
 import { authService } from '../services/auth.service';
 import { ROUTES } from '../constants/routes';
 import Input from '../components/common/Input';
@@ -40,8 +41,13 @@ const RegisterPage: React.FC = () => {
       });
       toast.success('Account created! Please sign in.');
       navigate(ROUTES.LOGIN);
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Registration failed. Please try again.';
+    } catch (err: unknown) {
+      let message = 'Registration failed. Please try again.';
+      if (isAxiosError(err)) {
+        message = err.response?.data?.message || message;
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
       toast.error(message);
     } finally {
       setIsLoading(false);

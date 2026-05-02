@@ -3,13 +3,7 @@ import * as Express from 'express';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-
-interface RequestWithUser extends Express.Request {
-  user: {
-    userId: string;
-    email: string;
-  };
-}
+import type { RequestWithUser } from '../../common/interfaces/request-with-user.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +24,7 @@ export class AuthController {
       httpOnly: true,
       secure: isProduction, 
       sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, 
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     return {
