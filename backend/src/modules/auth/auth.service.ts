@@ -3,9 +3,10 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import type { IUserRepository } from '../user/interfaces/user-repository.interface';
 import { LoginUserDto } from './dto/login-user.dto';
+import type { IAuthService } from './interfaces/auth-service.interface';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements IAuthService {
   constructor(
     @Inject('USER_REPOSITORY')
     private readonly userRepository: IUserRepository,

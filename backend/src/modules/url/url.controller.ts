@@ -3,6 +3,7 @@ import type { Response } from 'express';
 import { UrlService } from './url.service';
 import { CreateUrlDto } from './dto/create-url.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import type { RequestWithUser } from '../../common/interfaces/request-with-user.interface';
 
 @Controller()
 export class UrlController {
@@ -12,7 +13,7 @@ export class UrlController {
   @UseGuards(JwtAuthGuard)
   async shorten(
     @Body() createUrlDto: CreateUrlDto,
-    @Req() req: any
+    @Req() req: RequestWithUser
   ) {
    
     createUrlDto.userId = req.user.userId;
@@ -22,7 +23,7 @@ export class UrlController {
   @Get('url/my-links')
   @UseGuards(JwtAuthGuard)
   async getMyLinks(
-    @Req() req: any,
+    @Req() req: RequestWithUser,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
   ) {

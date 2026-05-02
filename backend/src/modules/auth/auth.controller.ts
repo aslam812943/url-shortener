@@ -3,13 +3,7 @@ import * as Express from 'express';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-
-interface RequestWithUser extends Express.Request {
-  user: {
-    userId: string;
-    email: string;
-  };
-}
+import type { RequestWithUser } from '../../common/interfaces/request-with-user.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -24,11 +18,13 @@ export class AuthController {
     const result = await this.authService.login(loginDto);
     
   
+    const isProduction = process.env.NODE_ENV === 'production';
+
     response.cookie('authentication', result.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, 
+      secure: isProduction, 
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     return {
@@ -39,7 +35,13 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Res({ passthrough: true }) response: Express.Response) {
-    response.clearCookie('authentication');
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    response.clearCookie('authentication', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+    });
     return { message: 'Logged out successfully' };
   }
 

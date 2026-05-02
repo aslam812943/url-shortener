@@ -3,9 +3,10 @@ import { nanoid } from 'nanoid';
 import type { IUrlRepository } from './interfaces/url-repository.interface';
 import { CreateUrlDto } from './dto/create-url.dto';
 import { IUrl } from './interfaces/url.interface';
+import type { IUrlService } from './interfaces/url-service.interface';
 
 @Injectable()
-export class UrlService {
+export class UrlService implements IUrlService {
   constructor(
     @Inject('URL_REPOSITORY')
     private readonly urlRepository: IUrlRepository,
@@ -19,22 +20,30 @@ export class UrlService {
       return existingUrl;
     }
 
-    // Generate unique short code
-    let shortCode = nanoid(8);
-    let isCodeTaken = await this.urlRepository.findByShortCode(shortCode);
-    
-    // Simple collision handling
-    while (isCodeTaken) {
-      shortCode = nanoid(8);
-      isCodeTaken = await this.urlRepository.findByShortCode(shortCode);
+    let maxRetries = 3;
+    while (maxRetries > 0) {
+      const shortCode = nanoid(8);
+      const isCodeTaken = await this.urlRepository.findByShortCode(shortCode);
+      
+      if (!isCodeTaken) {
+        try {
+          return await this.urlRepository.create({
+            originalUrl,
+            shortCode,
+            userId,
+          });
+        } catch (err: unknown) {
+          if (err && typeof err === 'object' && 'code' in err && err.code === 11000) {
+            maxRetries--;
+            continue;
+          }
+          throw err;
+        }
+      }
+      maxRetries--;
     }
-
-    return await this.urlRepository.create({
-      originalUrl,
-      shortCode,
-      userId,
     
-    });
+    throw new Error('Could not generate a unique short code after multiple attempts');
   }
 
   async getOriginalUrl(shortCode: string): Promise<string> {

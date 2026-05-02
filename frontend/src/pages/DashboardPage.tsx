@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
+import { isAxiosError } from 'axios';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { useAuth } from '../App';
@@ -79,8 +80,13 @@ const DashboardPage: React.FC = () => {
      
       setPage(1);
       fetchLinks(1, true);
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to shorten URL';
+    } catch (err: unknown) {
+      let message = 'Failed to shorten URL';
+      if (isAxiosError(err)) {
+        message = err.response?.data?.message || message;
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
       toast.error(message);
     } finally {
       setIsShortening(false);
