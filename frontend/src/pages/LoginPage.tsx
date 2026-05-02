@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { isAxiosError } from 'axios';
 import { authService } from '../services/auth.service';
 import { ROUTES } from '../constants/routes';
 import Input from '../components/common/Input';
@@ -34,8 +35,13 @@ const LoginPage: React.FC = () => {
       login(response.user);
       toast.success('Welcome back!');
       navigate(ROUTES.DASHBOARD);
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+    } catch (err: unknown) {
+      let message = 'Login failed. Please check your credentials.';
+      if (isAxiosError(err)) {
+        message = err.response?.data?.message || message;
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
       toast.error(message);
     } finally {
       setIsLoading(false);
